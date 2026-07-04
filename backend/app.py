@@ -9,52 +9,11 @@ Run:
 Server starts on http://localhost:5000
 """
 
-
 import os
-from flask import Flask, send_from_directory, request, jsonify
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
-
-app = Flask(__name__, static_folder='../frontend/dist')
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-# ... rest of your code continues here
-
-# Get the absolute path to the directory where this script is located
-base_dir = os.path.abspath(os.path.dirname(__file__))
-
-# Point to the 'frontend/dist' folder relative to the backend folder
-# This assumes your structure is: webapp/backend/app.py and webapp/frontend/dist/
-app = Flask(__name__, static_folder=os.path.join(base_dir, '../frontend/dist'))
-
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve(path):
-    # Construct the path to the requested file
-    file_path = os.path.join(app.static_folder, path)
-    
-    # If the file exists and is not a directory, serve it
-    if path != "" and os.path.exists(file_path) and os.path.isfile(file_path):
-        return send_from_directory(app.static_folder, path)
-    # Otherwise, serve index.html
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
-
 import re
 from datetime import datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify
+from flask import Flask, send_from_directory, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import (
@@ -67,7 +26,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__)
+# Configure Flask to serve static files from frontend/dist
+app = Flask(__name__, static_folder=os.path.join(BASE_DIR, '../frontend/dist'))
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "dev-secret-change-me")
@@ -78,6 +38,7 @@ jwt = JWTManager(app)
 CORS(app)  # allow the Vite dev server (any origin) to call this API
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 
 
 # ---------------------------------------------------------------- models --
@@ -279,5 +240,17 @@ def health():
     return jsonify({"status": "ok"})
 
 
+# Static serving for built React files
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    file_path = os.path.join(app.static_folder, path)
+    if path != "" and os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
