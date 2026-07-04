@@ -1,0 +1,23 @@
+# Python virtual environment
+venv/
+env/
+ENV/
+
+# Node packages
+frontend/node_modules/
+
+# Python cache & compiler output
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local SQLite databases
+backend/app.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Frontend build outputs (Optional: keep if you compile locally, but if you build on Render you ignore it.
+# Since we are deploying a single Python service serving pre-compiled dist, we do NOT ignore frontend/dist here so Render can access it).
+# frontend/dist/
